@@ -1,4 +1,5 @@
 import { galleryItems } from './gallery-items.js';
+
 // Change code below this line
 
 const galleryContainer = document.querySelector('.gallery');
@@ -6,7 +7,6 @@ const galleryMarkup = createGalleryItem(galleryItems);
 galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
 galleryContainer.addEventListener('click', onImageItemClick);
 
-let modalWindow;
 function createGalleryItem(galleryItems) {
     return galleryItems.map(({ preview, original, description }) => {
     return `
@@ -22,34 +22,31 @@ function createGalleryItem(galleryItems) {
     </div> `;
     }).join('');
 }
- const onEscapePress = evt => {
-        if (evt.code === 'Escape') 
-            modalWindow.close();
- };
     
-function onImageItemClick(evt) {
-    
-    const isOrigenImg = evt.target.classList.contains('.gallery__link');
-
-    if (!isOrigenImg) {
+function onImageItemClick(item) {
+    if (item.target.nodeName !== "IMG") {
         return;
     }
-    evt.preventDefault();
-    
-    const lageImage = evt.target.dataset.source;
-    const modalWindow = basicLightbox.create(`
-    <img
-    src ="${lageImage}">`,
-        {
-            show: () => {
-                window.addEventListener('keydown', onEscapePress);
-            },
-            close: () => {
-                window.removeEventListener('keydown', onEscapePress);
-            },
-        });
-    modalWindow.show()
-}
+    item.preventDefault();
 
-console.log(galleryItems);
+  
+    const instance = basicLightbox.create(`
+    <img
+    src ="${item.target.dataset.source}">`,
+    {
+        onShow: (instance) => {
+            const listener = function (evt) {
+                if (evt.key === "Escape") {
+                    console.log('key', evt.key);
+                    document.removeEventListener('keydown', listener);
+                }
+                return instance.close();
+                };
+            document.addEventListener('keydown', listener);
+        },
+    }
+        );
+    instance.show();
+}
+// console.log(galleryItems);
 
